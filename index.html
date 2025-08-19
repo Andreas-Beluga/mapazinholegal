@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mapa - Lorena, SP</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+
+  <style>
+    #map {
+      height: 80vh;
+      width: 100%;
+    }
+    #button-container {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 999;
+      background-color: white;
+      padding: 10px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Mapa de Imagens - Lorena, SP</h2>
+
+  <div id="button-container">
+    <input type="file" id="imageInput" accept="image/*" />
+    <button id="submitButton">Enviar Imagem</button>
+  </div>
+
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+  <script>
+    const apiGetUrl = 'https://api-mural.onrender.com/photos';
+    const apiPostUrl = 'https://api-mural.onrender.com/photo';
+
+    let userLatitude, userLongitude;
+
+    const map = L.map('map').setView([-22.7338, -45.1241], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+    L.Control.geocoder().addTo(map);
+
+    function getLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          position => {
+            userLatitude = position.coords.latitude;
+            userLongitude = position.coords.longitude;
+
+            map.setView([userLatitude, userLongitude], 14);
+            L.marker([userLatitude, userLongitude])
+              .addTo(map)
+              .bindPopup('Sua localização atual!')
+              .openPopup();
+          },
+          error => {
+            alert('Erro ao obter localização: ' + error.message);
+          }
+        );
+      } else {
+        alert("Geolocalização não suportada.");
+      }
+    }
+
+    function loadImages() {
+      fetch(apiGetUrl)
+        .then(response => response.json())
+        .then(data => {
+          data.forEach(item => {
+            const { image_url, latitude, longitude } = item;
+            if (image_url && latitude && longitude) {
+              L.marker([latitude, longitude])
+                .addTo(map)
+                .bindPopup(`<b>Imagem Postada:</b><br><img src="${image_url}" width="200">`);
+            }
+          });
+        })
+        .catch(error => {
+          console.error("Erro ao carregar imagens:", error);
+        });
+    }
+
+    function uploadImage(file) {
+      if (!userLatitude || !userLongitude) {
+        alert('Aguardando localização...');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('latitude', userLatitude);
+      formData.append('longitude', userLongitude);
+
+      fetch(apiPostUrl, {
+        method: 'POST',
+        body: formData
+      })
+        .then(response => {
+          if (!response.ok) throw new Error("Erro ao enviar imagem.");
+          return response.json();
+        })
+        .then(data => {
+          console.log("Imagem enviada com sucesso:", data);
+          loadImages(); // Atualiza o mapa
+        })
+        .catch(error => {
+          console.error("Erro ao enviar imagem:", error);
+          alert("Falha ao enviar imagem. Veja o console.");
+        });
+    }
+
+    document.getElementById('submitButton').addEventListener('click', () => {
+      const file = document.getElementById('imageInput').files[0];
+      if (!file) {
+        alert("Selecione uma imagem.");
+        return;
+      }
+      uploadImage(file);
+    });
+
+    getLocation();
+    loadImages();
+  </script>
+</body>
+</html>
