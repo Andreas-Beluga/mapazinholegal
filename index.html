@@ -15,22 +15,26 @@
     }
     #button-container {
       position: absolute;
-      top: 20px;
-      left: 20px;
+  
       z-index: 999;
-      background-color: white;
+      background-color: #105b63;
       padding: 10px;
       border-radius: 5px;
+      margin-left: 60px;
     }
   </style>
 </head>
 <body>
-  <h2>Mapa de Imagens - Lorena, SP</h2>
+
+    <header> <img src="images/logo.png" alt="" class="logoo"> <h3 class="tituloo">Mapa de Imagens</h3></header>
+ 
 
   <div id="button-container">
+    <label for="imageInput" id="customFileLabel">Selecionar imagem</label>
     <input type="file" id="imageInput" accept="image/*" />
     <button id="submitButton">Enviar Imagem</button>
   </div>
+  
 
   <div id="map"></div>
 
@@ -81,12 +85,12 @@
             const { image_url, latitude, longitude } = item;
             if (image_url && latitude && longitude) {
               
-              // criar ícone com a própria imagem
+             
               const imageIcon = L.icon({
                 iconUrl: image_url,
-                iconSize: [60, 60],   // tamanho do thumbnail no mapa
-                iconAnchor: [30, 30], // centraliza o ícone
-                popupAnchor: [0, -30] // posiciona o popup acima
+                iconSize: [60, 60],   
+                iconAnchor: [30, 30], 
+                popupAnchor: [0, -30] 
               });
 
               L.marker([latitude, longitude], { icon: imageIcon })
