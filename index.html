@@ -57,6 +57,8 @@
             userLongitude = position.coords.longitude;
 
             map.setView([userLatitude, userLongitude], 14);
+
+            // marcador só de localização do usuário
             L.marker([userLatitude, userLongitude])
               .addTo(map)
               .bindPopup('Sua localização atual!')
@@ -78,9 +80,21 @@
           data.forEach(item => {
             const { image_url, latitude, longitude } = item;
             if (image_url && latitude && longitude) {
-              L.marker([latitude, longitude])
+              
+              // criar ícone com a própria imagem
+              const imageIcon = L.icon({
+                iconUrl: image_url,
+                iconSize: [60, 60],   // tamanho do thumbnail no mapa
+                iconAnchor: [30, 30], // centraliza o ícone
+                popupAnchor: [0, -30] // posiciona o popup acima
+              });
+
+              L.marker([latitude, longitude], { icon: imageIcon })
                 .addTo(map)
-                .bindPopup(`<b>Imagem Postada:</b><br><img src="${image_url}" width="200">`);
+                .bindPopup(`
+                  <b>Imagem Postada:</b><br>
+                  <img src="${image_url}" width="200">
+                `);
             }
           });
         })
